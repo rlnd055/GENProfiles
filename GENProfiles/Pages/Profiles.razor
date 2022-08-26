@@ -1,0 +1,122 @@
+﻿@page "/"
+@inject IJSRuntime jsRuntime
+@inject NavigationManager uriHelper;
+<h1 class="text-center text-primary">LCS-100-GEN Profiles Management&nbsp;<button type="button" class="btn btn-outline-success" @onclick="AddProfileForm"><i class="fa-solid fa-plus" aria-hidden="true"></i>&nbsp;Add Profile</button></h1>
+
+@if (displayForm)
+{
+    <div class="modal" tabindex="-1" role="dialog" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="margin:auto!important">
+                    <h5 class="modal-title text-info">@FormTitle()</h5>
+                </div>
+                <div class="modal-body">
+                    <form class="row p-3">
+                        <div class="col-md-12 mb-3">
+                            <label>Number:</label>
+                            <span class="col-narrow float-right">@valNumber</span>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="name">Name:</label>
+                            <input id="name" @bind="valName" class="float-right" />
+                            @if (flgName)
+                            {<br /><p class="float-right text-danger">Enter a name</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="pulsewidth">Pulse Width (ns):</label>
+                            <input id="pulsewidth" @bind="valPulseWidth" class="float-right" />
+                            @if (flgPulseWidth)
+                            {<br /><p class="float-right text-danger">Pulse Width:@(minPulseWidth)ns..@(maxPulseWidth)ns</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="frequency">Frequency (kHz):</label>
+                            <input id="frequency" @bind="valFrequency" class="float-right" />
+                            @if (flgFrequency)
+                            {<br /><p class="float-right text-danger">Frequency:@(minFrequency)kHz..@(maxFrequency)kHz</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="scanspeed">Scan Speed (m/s):</label>
+                            <input id="scanspeed" @bind="valScanSpeed" class="float-right" />
+                            @if (flgScanSpeed)
+                            {<br /><p class="float-right text-danger">Scan Speed:@(minScanSpeed)m/s..@(maxScanSpeed)m/s</p>}
+                        </div>
+                        <div class="col-md-12 mb-3" style="display:flex; justify-content:space-between;">
+                            <label>Focal Distance (mm):</label>
+                            <div><input type="radio" name="focaldistance" checked="@(valFocalDistance == minFocalDistance)" @onchange="(() => valFocalDistance = minFocalDistance)" />&nbsp;@minFocalDistance</div>
+                            <div><input type="radio" name="focaldistance" checked="@(valFocalDistance == maxFocalDistance)" @onchange="(() => valFocalDistance = maxFocalDistance)" />&nbsp;@maxFocalDistance</div>
+                            @if (flgFocalDistance)
+                            {<br /><p class="float-right text-danger">Choose a Focal Distance</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="shapesize">Shape Size (mm):</label>
+                            <input id="shapesize" @bind="valShapeSize" class="float-right" />
+                            @if (flgShapeSize)
+                            {<br /><p class="float-right text-danger">Shape Size:@(minShapeSize)mm..@(maxShapeSize)mm</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="power">Power (W):</label>
+                            <input id="power" @bind="valPower" class="float-right" />
+                            @if (flgPower)
+                            {<br /><p class="float-right text-danger">Power:@(minPower)W..@(maxPower)W</p>}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="active">Active</label>
+                            <input id="active" type="checkbox" class="col-narrow float-right" @bind="bActive" />
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="CloseForm">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="() => ProcessProfile(false)">Save Changes</button>
+                    @if (!addProfile)
+                    {
+                        <button type="button" class="btn btn-primary" @onclick="() => ProcessProfile(true)">Save as New</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<!--
+<tr>
+    <th scope="col">No</th>
+    <th scope="col">Pulse Width</th>
+    <th scope="col">Frequency</th>
+    <th scope="col">Scan Speed</th>
+    <th scope="col">Focal dist.</th>
+    <th scope="col">Size</th>
+    <th scope="col">Power</th>
+    <th scope="col">Active</th>
+    <th scope="col" colspan="2"><button type="button" class="btn btn-outline-success" @onclick="AddProfileForm"><i class="fa-solid fa-plus" aria-hidden="true"></i>&nbsp;Add Profile</button></th>
+</tr>-->
+<!--<div style="display:flex; flex-direction:row; justify-content:center;"><button type="button" class="btn btn-outline-success" @onclick="AddProfileForm"><i class="fa-solid fa-plus" aria-hidden="true"></i>&nbsp;Add Profile</button></div>-->
+<br />
+<div style="display:flex; flex-direction:column;">
+
+    @foreach (var profile in profiles)
+    {
+        string row_bg = profile.Selected ? "bg-primary" : "";
+        string row_color = profile.Active == 1 ? "blue" : "grey";
+    <div class="@row_bg" style="display:flex; justify-content:center; margin-bottom:10px;">
+        <a href="" @onclick="() => EditProfileForm(profile)" style="display:flex; flex-wrap:wrap; justify-content:space-around; color:@row_color; text-decoration:none;">
+            <div style="display:flex">
+                <div class="col-narrow">@profile.Number</div>
+                <div class="col-wide">@profile.Name</div>
+                <div class="col-normal" style="align-self:flex-end;"><span>@profile.FocalDistance</span>&nbsp;mm</div>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+                <div class="col-normal"><span>@profile.Frequency</span>&nbsp;kHz</div>
+                <div class="col-normal"><span>@profile.PulseWidth</span>&nbsp;ns</div>
+                <div class="col-normal"><span>@profile.ScanSpeed</span>&nbsp;m/s</div>
+                <div class="col-normal"><span>@profile.ShapeSize</span>&nbsp;mm</div>
+                <div class="col-normal"><span>@profile.Power</span>&nbsp;W</div>
+                <!--<div style="width:75px;">@Active(profile)</div>-->
+            </div>
+        </a>
+        <div><!--<button type="button" class="btn btn-outline-info btn-floating px-3" @onclick="() => EditProfileForm(profile)"><i class="fa-solid fa-pencil" aria-hidden="true"></i></button>&nbsp;<button type="button" class="btn btn-outline-warning btn-floating px-3" @onclick:stopPropagation="true" @onclick="() => CloneProfileForm(profile)"><i class="fa-solid fa-clone" aria-hidden="true"></i></button>&nbsp;--><button type="button" class="btn btn-outline-danger btn-floating px-3" @onclick:stopPropagation="true" @onclick="() => DelProfile(profile)"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></div>
+    </div>
+    }
+</div>
+

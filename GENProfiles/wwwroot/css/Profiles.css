@@ -1,0 +1,50 @@
+﻿/*input {
+    width: 80px;
+}
+
+table td.col-normal {
+    width: 80px;
+}
+
+table td.col-narrow {
+    width: 20px;
+}
+
+table td.col-normal input {
+    width: 90%;
+}
+
+table td.col-narrow input {
+    width: 50%;
+}
+
+span.col-narrow {
+    display: inline-block;
+    width: 20px;
+}
+
+input {
+    width: 71px;
+    margin-right: 5px;
+}
+
+input.col-narrow {
+    width: 24px;
+    margin-right: 20px;
+}*/
+
+.flex-break {
+    width: 100%;
+}
+
+.col-narrow {
+    width: 25px;
+}
+
+.col-normal {
+    width: 65px;
+}
+
+.col-wide {
+    width: 260px;
+}

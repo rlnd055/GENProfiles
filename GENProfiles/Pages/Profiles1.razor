@@ -1,0 +1,322 @@
+﻿@page "/bis"
+@inject IJSRuntime jsRuntime
+@inject NavigationManager uriHelper;
+<h1 class="text-center text-primary">LCS-100-GEN Profiles Management</h1>
+
+
+<br />
+
+@if (displayForm)
+{
+    <div class="modal" tabindex="-1" role="dialog" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="margin:auto!important">
+                    <h5 class="modal-title text-info">@FormTitle()</h5>
+                </div>
+                <div class="modal-body">
+                    <form class="row p-3">
+                        <div class="col-md-12 mb-3">
+                            <label>New Number:</label>
+                            <span class="col-narrow float-right">@valNumber</span>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="pulsewidth">Pulse Width:</label>
+                            <input id="pulsewidth" @bind="valPulseWidth" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="frequency">Frequency:</label>
+                            <input id="frequency" @bind="valFrequency" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="scanspeed">Scan Speed:</label>
+                            <input id="scanspeed" @bind="valScanSpeed" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="focaldistance">Focal Distance:</label>
+                            <input id="focaldistance" @bind="valFocalDistance" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="shapesize">Shape Size:</label>
+                            <input id="shapesize" @bind="valShapeSize" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="power">Power:</label>
+                            <input id="power" @bind="valPower" class="float-right" />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="active">Active:</label>
+                            <input id="active" class="col-narrow float-right" @bind="valActive" />
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="CloseForm">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="ProcessProfile">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<table class="table table-responsive-sm">
+    <tr>
+        <th scope="col">No</th>
+        <th scope="col">Pulse Width</th>
+        <th scope="col">Frequency</th>
+        <th scope="col">Scan Speed</th>
+        <th scope="col">Focal dist.</th>
+        <th scope="col">Size</th>
+        <th scope="col">Power</th>
+        <th scope="col">Active</th>
+        <th scope="col" colspan="2"><button type="button" class="btn btn-outline-success" @onclick="AddProfileForm"><i class="fa-solid fa-plus" aria-hidden="true"></i>&nbsp;Add Profile</button></th>
+    </tr>
+    @foreach (var profile in profiles)
+    {
+        string row_bg = profile.Selected ? "bg-primary" : "";
+        <tr class="@row_bg">
+            <td>@profile.Number</td>
+            <td>@profile.Frequency</td>
+            <td>@profile.PulseWidth</td>
+            <td>@profile.ScanSpeed</td>
+            <td>@profile.FocalDistance</td>
+            <td>@profile.ShapeSize</td>
+            <td>@profile.Power</td>
+            <td>@profile.Active</td>
+            @*<td><button type="button" class="btn btn-outline-info btn-floating px-3" @onclick="() => EditProfileForm(profile)"><i class="fa-solid fa-pencil" aria-hidden="true"></i></button></td>
+                <td><button type="button" class="btn btn-outline-warning btn-floating px-3" @onclick="() => CloneProfileForm(profile)"><i class="fa-solid fa-clone" aria-hidden="true"></i></button></td>
+                <td><button type="button" class="btn btn-outline-danger btn-floating px-3" @onclick="() => DelProfile(profile)"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></td>*@
+            <td colspan="2"><button type="button" class="btn btn-outline-info btn-floating px-3" @onclick="() => EditProfileForm(profile)"><i class="fa-solid fa-pencil" aria-hidden="true"></i></button>&nbsp;<button type="button" class="btn btn-outline-warning btn-floating px-3" @onclick="() => CloneProfileForm(profile)"><i class="fa-solid fa-clone" aria-hidden="true"></i></button>&nbsp;<button type="button" class="btn btn-outline-danger btn-floating px-3" @onclick="() => DelProfile(profile)"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></td>
+        </tr>
+    }
+</table>
+
+@code{
+    //by default the form is displayed for editing a profile, not for adding
+    bool displayForm = false, addProfile = false, cloneProfile = false;
+    string titleAddProfile = "Add Profile";
+    string titleEditProfile = "Edit Profile";
+    string titleCloneProfile = "Clone Profile";
+
+    private List<Profile> profiles = Profile.GetProfiles();
+    private long valNumber = Profile.MaxNumber() + 1;
+    private long selectedNumber = 0;
+    private long? valPulseWidth;
+    private long? valFrequency;
+    private long? valScanSpeed;
+    private long? valFocalDistance;
+    private long? valShapeSize;
+    private long? valPower;
+    private long? valActive;
+
+    string FormTitle()
+    {
+        if (addProfile)
+            return titleAddProfile;
+        else if (cloneProfile)
+            return titleCloneProfile;
+        else
+            return titleEditProfile;
+    }
+
+    void AddProfileForm()
+    {
+        displayForm = addProfile = true;
+    }
+
+    void CloseForm()
+    {
+        displayForm = addProfile = cloneProfile = false;
+        if (selectedNumber != 0)
+        {
+            Profile profile = Profile.GetProfileByNumber(selectedNumber);
+            profile.Selected = false;
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);   //Refresh component
+        }
+    }
+
+    private void ProcessProfile()
+    {
+        if (addProfile)
+        {
+            AddProfile();
+        }
+        else if (cloneProfile)
+        {
+            CloneProfile();
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);   //Refresh component
+        }
+        else
+        {
+            EditProfile();
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);   //Refresh component
+        }
+    }
+
+    private void AddProfile()
+    {
+        if (ValidProfile(valPulseWidth, valFrequency, valScanSpeed, valFocalDistance, valShapeSize, valPower, valActive))
+        {
+            Profile profile = new Profile
+            {
+                Number = valNumber,
+                PulseWidth = (long)valPulseWidth,
+                Frequency = (long)valFrequency,
+                ScanSpeed = (long)valScanSpeed,
+                FocalDistance = (long)valFocalDistance,
+                ShapeSize = (long)valShapeSize,
+                Power = (long)valPower,
+                Active = (long)valActive
+            };
+            profiles.Add(profile);
+            Profile.AddProfile(profile);
+            valNumber = Profile.MaxNumber() + 1;
+            valPulseWidth = null;
+            valFrequency = null;
+            valScanSpeed = null;
+            valFocalDistance = null;
+            valShapeSize = null;
+            valPower = null;
+            valActive = null;
+        }
+    }
+
+    private bool ValidProfile(long? pwdth, long? freq, long? sSpeed, long? fDist, long? sSize, long? pwr, long? act)
+    {
+        return pwdth > 0 && freq > 0 && sSpeed > 0 &&
+            fDist > 0 && sSize > 0 && pwr > 0 &&
+            (act == 0 || act == 1);
+    }
+
+    private void SelectRow(Profile profile, bool selected)
+    {
+        profile.Selected = selected;
+        selectedNumber = selected ? profile.Number : 0;
+    }
+
+    private void EditProfileForm(Profile profile)
+    {
+        SelectRow(profile, true);
+        StateHasChanged();
+
+        valNumber = profile.Number;
+        valPulseWidth = profile.PulseWidth;
+        valFrequency = profile.Frequency;
+        valScanSpeed = profile.ScanSpeed;
+        valFocalDistance = profile.FocalDistance;
+        valShapeSize = profile.ShapeSize;
+        valPower = profile.Power;
+        valActive = profile.Active;
+
+        displayForm = true;
+    }
+
+    private void EditProfile()
+    {
+        Profile profile = Profile.GetProfileByNumber(valNumber);
+
+        if (ValidProfile(valPulseWidth, valFrequency, valScanSpeed, valFocalDistance, valShapeSize, valPower, valActive))
+        {
+            profile.PulseWidth = (long)valPulseWidth;
+            profile.Frequency = (long)valFrequency;
+            profile.ScanSpeed = (long)valScanSpeed;
+            profile.FocalDistance = (long)valFocalDistance;
+            profile.ShapeSize = (long)valShapeSize;
+            profile.Power = (long)valPower;
+            profile.Active = (long)valActive;
+            profile.Selected = false;
+
+            Profile.EditProfile(profile);
+            CloseForm();
+        }
+
+    }
+
+    private void CloneProfileForm(Profile profile)
+    {
+        SelectRow(profile, true);
+        StateHasChanged();
+
+        valPulseWidth = profile.PulseWidth;
+        valFrequency = profile.Frequency;
+        valScanSpeed = profile.ScanSpeed;
+        valFocalDistance = profile.FocalDistance;
+        valShapeSize = profile.ShapeSize;
+        valPower = profile.Power;
+        valActive = profile.Active;
+
+        displayForm = cloneProfile = true;
+    }
+
+    private void CloneProfile()
+    {
+        if (ValidProfile(valPulseWidth, valFrequency, valScanSpeed, valFocalDistance, valShapeSize, valPower, valActive))
+        {
+            Profile profile = new Profile
+            {
+                Number = valNumber,
+                PulseWidth = (long)valPulseWidth,
+                Frequency = (long)valFrequency,
+                ScanSpeed = (long)valScanSpeed,
+                FocalDistance = (long)valFocalDistance,
+                ShapeSize = (long)valShapeSize,
+                Power = (long)valPower,
+                Active = (long)valActive
+            };
+            profiles.Add(profile);
+            Profile.AddProfile(profile);
+            valNumber = Profile.MaxNumber() + 1;
+            valPulseWidth = null;
+            valFrequency = null;
+            valScanSpeed = null;
+            valFocalDistance = null;
+            valShapeSize = null;
+            valPower = null;
+            valActive = null;
+
+            CloseForm();
+        }
+    }
+
+    private async void DelProfile(Profile profile)
+    {
+        SelectRow(profile, true);
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(100);
+        jsPrompt(profile);
+    }
+
+    private async void jsPrompt(Profile profile)
+    {
+        if (await jsRuntime.InvokeAsync<bool>("confirm", "Delete profile?"))
+        {
+            profiles.Remove(profile);
+            RenumProfiles(profile.Number);
+            Profile.DeleteProfile(profile);
+            Profile.RenumProfiles(profile.Number);
+            selectedNumber = 0;
+            valNumber = Profile.MaxNumber() + 1;
+            StateHasChanged();
+        }
+        else
+        {
+            SelectRow(profile, false);
+            StateHasChanged();
+
+        }
+    }
+
+    private void RenumProfiles(long deletedNum)
+    {
+        foreach (var profile in profiles)
+        {
+            if (profile.Number >= deletedNum)
+            {
+                profile.Number--;
+            }
+        }
+    }
+
+}
+

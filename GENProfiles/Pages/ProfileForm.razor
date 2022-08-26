@@ -1,0 +1,43 @@
+﻿@page "/profileform/{profile}"
+
+<h3>Profile</h3>
+
+<EditForm EditContext="@EditContext" class="row px-3">
+    <div class="form-group">
+        <label for="number">Number</label>
+        <input type="number" @bind-value="profile.Number" class="form-control" id="number" disabled />
+    </div>
+    <div class="form-group">
+        <label for="pulsewidth">Pulse Width</label>
+        <input type="number" @bind-value="profile.PulseWidth" class="form-control" id="pulsewidth" placeholder="Pulse Width" />
+    </div>
+    <div class="form-group">
+        <label for="frequency">Frequency</label>
+        <input type="number" @bind-value="profile.Frequency" class="form-control" id="frequency" placeholder="Frequency" />
+    </div>
+    <div class="form-group">
+        <label for="scanspeed">Scan Speed</label>
+        <input type="number" @bind-value="profile.ScanSpeed" class="form-control" id="scanspeed" placeholder="Scan Speed" />
+    </div>
+    <div class="form-group">
+        <label for="focaldistance">Focal Distance</label>
+        <input type="number" @bind-value="profile.FocalDistance" class="form-control" id="focaldistance" placeholder="Focal Distance" />
+    </div>
+    <div class="form-group">
+        <label for="pulsewidth">Pulse Width</label>
+        <input type="number" @bind-value="profile.PulseWidth" class="form-control" id="pulsewidth" placeholder="Pulse Width" />
+    </div>
+    <div class="form-group">
+        <label for="shapesize">Shape Size</label>
+        <input type="number" @bind-value="profile.ShapeSize" class="form-control" id="shapesize" placeholder="Shape Size" />
+    </div>
+    <div class="form-group">
+        <label for="power">Power</label>
+        <input type="number" @bind-value="profile.Power" class="form-control" id="power" placeholder="Power" />
+    </div>
+    <div class="form-group">
+        <input type="checkbox" @bind-value="profile.Active" class="form-check-input" id="active" />
+        <label for="active">Active</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
